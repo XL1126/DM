@@ -364,7 +364,7 @@
             return;
           }
           //过滤掉结尾有空格的名字
-          const validNames = names.filter(name => !name.endsWith(' '));
+          const validNames = names.filter(name => !name.endsWith('.'));
           if (validNames.length === 0) {
             console.error('No valid names available for random selection.');
             return;
