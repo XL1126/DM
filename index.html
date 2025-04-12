@@ -1,0 +1,478 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <title>Dynamic Grid Background</title>
+  <!-- 预加载字体资源 -->
+  <link rel="preload" href="./YeZiGongChangTangYingHei-2.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="./XL.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="./XiangJiaoKuanMaoShuaLingGanTi-2.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <!-- 预加载脚本资源 -->
+  <link rel="preload" href="./normalize-5.0.0.min.css" as="style">
+  <link rel="preload" href="./3.4.16.css" as="script">
+  <link rel="stylesheet" href="./normalize-5.0.0.min.css">
+  <script src="./3.4.16.css"></script>
+  <style>
+    @font-face {
+      font-family: 'YeZiGongChangTangYingHei';
+      src: url('./YeZiGongChangTangYingHei-2.ttf') format('truetype');
+    }
+
+    @font-face {
+      font-family: 'XLFont';
+      src: url('./XL.woff2') format('woff2');
+    }
+
+    @font-face {
+      font-family: 'XiangJiaoFont';
+      src: url('./XiangJiaoKuanMaoShuaLingGanTi-2.ttf') format('truetype');
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #1a1a1a;
+      user-select: none;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .cards {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card {
+      position: absolute;
+      width: 150px;
+      height: 200px;
+      font-family: "YeZiGongChangTangYingHei", sans-serif;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(100px);
+      animation: slideIn 1s cubic-bezier(0.25, 0.1, 0.25, 1.5) forwards;
+    }
+
+    @keyframes slideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(100px);
+      }
+      80% {
+        transform: translateY(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .front, .back {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      transition: all 0.5s;
+    }
+
+    .back {
+      border: 6px solid #333;
+      background: #222;
+      color: #fff;
+      font-size: 72px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: rotateY(0deg);
+    }
+
+    .back::after {
+      content: "XL";
+      font-family: 'XLFont', sans-serif;
+      font-size: 72px;
+      font-weight: bold;
+      color: #fff;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .front {
+      border: 6px solid #555;
+      background-color: #444;
+      font-size: 48px;
+      color: #fff;
+      font-family: 'YeZiGongChangTangYingHei', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transform: rotateY(180deg);
+    }
+
+    input[type=checkbox] {
+      display: none;
+    }
+
+    input[type=checkbox]:checked ~ .front {
+      transform: rotateY(0deg);
+    }
+
+    input[type=checkbox]:checked ~ .back {
+      transform: rotateY(180deg);
+    }
+
+    .fade-out {
+      animation: fadeOut 0.8s forwards;
+    }
+
+    @keyframes fadeOut {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+
+    .move-to-diamond {
+      transition: all 1s ease-in-out;
+      top: 40%;
+      left: 45%;
+    }
+
+    .hint-text {
+      position: absolute;
+      top: 80%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 38px;
+      font-family: 'XiangJiaoFont', sans-serif;
+      text-align: center;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="gridCanvas"></canvas>
+  <div class="cards">
+    <!-- 卡片定义 -->
+    <label class="card spade" for="spade" style="top: 40%; left: 15%;">
+      <input type="checkbox" id="spade">
+      <div class="back"></div>
+      <div class="front">看什么</div>
+    </label>
+    <label class="card heart" for="heart" style="top: 40%; left: 30%;">
+      <input type="checkbox" id="heart">
+      <div class="back"></div>
+      <div class="front">看什么</div>
+    </label>
+    <label class="card diamond" for="diamond" style="top: 40%; left: 45%;">
+      <input type="checkbox" id="diamond">
+      <div class="back"></div>
+      <div class="front">不能看</div>
+    </label>
+    <label class="card club" for="club" style="top: 40%; left: 60%;">
+      <input type="checkbox" id="club">
+      <div class="back"></div>
+      <div class="front">看什么</div>
+    </label>
+    <label class="card joker" for="joker" style="top: 40%; left: 75%;">
+      <input type="checkbox" id="joker">
+      <div class="back"></div>
+      <div class="front">不能看</div>
+    </label>
+  </div>
+
+  <div class="flex items-center justify-center absolute bottom-20 left-1/2 transform -translate-x-1/2">
+    <div class="relative group">
+      <button id="triggerButton" class="relative inline-block p-px font-semibold leading-6 text-white bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95">
+        <span class="absolute inset-0 rounded-xl bg-white p-[3px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
+        <span class="relative z-10 block px-8 py-4 rounded-xl bg-gray-950">
+          <div class="relative z-10 flex items-center space-x-2">
+            <span class="transition-all duration-500 group-hover:translate-x-1">来吧，看看是那个幸运儿</span>
+            <svg class="w-8 h-8 transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path clip-rule="evenodd" fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"></path>
+            </svg>
+          </div>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    let offsetX = 0;
+    let offsetY = 0;
+    const cellSize = 40;
+    const lineColor = '#333';
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      for (let x = -cellSize + (offsetX % cellSize); x < canvas.width; x += cellSize) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+      }
+      for (let y = -cellSize + (offsetY % cellSize); y < canvas.height; y += cellSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+      }
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    function update() {
+      offsetX -= 1;
+      offsetY -= 1;
+      drawGrid();
+      requestAnimationFrame(update);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    update();
+
+    let names = [];
+
+    fetch('./3b.txt')
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to load 1.txt');
+        return response.text();
+      })
+      .then(data => {
+        names = data
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line && line.length <= 5 && /^[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(line));
+        if (names.length === 0) throw new Error('No valid names found');
+      })
+      .catch(error => {
+        console.error(error);
+        const errorHint = document.createElement('div');
+        errorHint.textContent = '数据加载失败，请稍后重试';
+        errorHint.style.position = 'absolute';
+        errorHint.style.top = '50%';
+        errorHint.style.left = '50%';
+        errorHint.style.transform = 'translate(-50%, -50%)';
+        errorHint.style.color = '#fff';
+        errorHint.style.fontSize = '24px';
+        errorHint.style.fontFamily = '"YeZiGongChangTangYingHei", sans-serif';
+        document.body.appendChild(errorHint);
+      });
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    const allCards = Array.from(document.querySelectorAll('.card'));
+    allCards.forEach(card => {
+      card.style.pointerEvents = 'none';
+    });
+
+    document.getElementById('triggerButton').addEventListener('click', async () => {
+      const button = document.getElementById('triggerButton');
+
+      // 添加按钮点击后的动画效果
+      button.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+      button.style.transform = 'scale(0.9)'; // 缩小按钮
+      button.style.opacity = '0'; // 渐隐按钮
+      await wait(500); // 等待动画完成
+
+      button.style.pointerEvents = 'none'; // 禁用按钮交互
+
+      // 创建透明覆盖层
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+      overlay.style.zIndex = '9999';
+      document.body.appendChild(overlay);
+
+      const remainingCard = document.querySelector('.diamond');
+      const cardsToRemove = allCards.filter(card => card !== remainingCard);
+
+      cardsToRemove.forEach((card, index) => {
+        card.classList.remove('move-to-diamond'); // 移除合并动画类
+        card.style.transition = 'none'; // 清除之前的过渡效果
+        card.offsetHeight; // 强制重绘以确保动画生效
+
+        // 延迟添加合并动画类，制造逐步合并的效果
+        setTimeout(() => {
+          card.style.transition = ''; // 恢复过渡效果
+          card.style.top = ''; // 清除卡片的 top 样式，使其可以自由移动到目标位置
+          card.style.left = ''; // 清除卡片的 left 样式，使其可以自由移动到目标位置
+          card.classList.add('move-to-diamond'); // 添加 move-to-diamond 类，触发卡片移动到中心的动画
+        }, index * 200); // 每张卡片延迟 200ms
+      });
+
+      await wait(1000);
+
+      cardsToRemove.forEach(card => {
+        card.style.visibility = 'hidden';
+      });
+
+      // 1.4秒后移除覆盖层
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+      }, 1400);
+
+      remainingCard.style.pointerEvents = 'auto';
+      remainingCard.addEventListener('click', (event) => {
+        const checkbox = remainingCard.querySelector('input[type=checkbox]');
+        const front = remainingCard.querySelector('.front');
+        const back = remainingCard.querySelector('.back');
+
+        // 阻止默认行为，确保状态更新后再检查
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        // 使用 setTimeout 确保复选框状态更新后再检查
+        setTimeout(() => {
+          if (checkbox.checked) {
+            console.log('牌为正面，无法随机');
+            return; // 如果牌为正面，拒绝随机
+          }
+
+          if (names.length === 0) {
+            console.error('Names array is empty or not loaded.');
+            return;
+          }
+          //过滤掉结尾有空格的名字
+          const validNames = names.filter(name => !name.endsWith(' '));
+          if (validNames.length === 0) {
+            console.error('No valid names available for random selection.');
+            return;
+          }
+
+          const randomName = validNames[Math.floor(Math.random() * validNames.length)];
+          front.textContent = randomName; // 更新正面内容为随机名字
+          front.style.transition = 'transform 0.5s'; // 添加翻牌动画
+          back.style.transition = 'transform 0.5s';
+          checkbox.checked = true; // 触发翻牌
+
+          // 显示“再来一次”按钮
+          const hint = document.createElement('div');
+          hint.textContent = '再来一次';
+          hint.className = 'hint-text';
+          document.body.appendChild(hint);
+
+          hint.addEventListener('click', async () => {
+            // 恢复卡片状态
+            cardsToRemove.forEach(card => {
+              card.style.visibility = 'visible'; // 重新显示卡片
+              card.classList.remove('move-to-diamond'); // 移除移动到中心的样式
+              card.offsetHeight; // 强制重绘以确保动画生效
+
+              // 恢复卡片到初始位置
+              if (card.classList.contains('spade')) {
+                card.style.top = '40%';
+                card.style.left = '15%';
+              } else if (card.classList.contains('heart')) {
+                card.style.top = '40%';
+                card.style.left = '30%';
+              } else if (card.classList.contains('diamond')) {
+                card.style.top = '40%';
+                card.style.left = '45%';
+              } else if (card.classList.contains('club')) {
+                card.style.top = '40%';
+                card.style.left = '60%';
+              } else if (card.classList.contains('joker')) {
+                card.style.top = '40%';
+                card.style.left = '75%';
+              }
+
+              // 添加入场动画
+              card.style.opacity = '0';
+              card.style.transform = 'translateY(100px)';
+              card.style.transition = 'none'; // 清除之前的过渡效果
+              card.offsetHeight; // 强制重绘
+              card.style.transition = 'opacity 1s, transform 1s cubic-bezier(0.25, 0.1, 0.25, 1.5)';
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(0)';
+            });
+
+            // 重置剩余卡片
+            const checkbox = remainingCard.querySelector('input[type=checkbox]');
+            checkbox.checked = false; // 翻回背面
+            const front = remainingCard.querySelector('.front');
+            const back = remainingCard.querySelector('.back');
+            front.style.transition = 'transform 0.5s'; // 添加翻牌动画
+            back.style.transition = 'transform 0.5s';
+
+            // 恢复按钮状态
+            button.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+            button.style.transform = 'scale(1)'; // 恢复按钮大小
+            button.style.opacity = '1'; // 渐显按钮
+            button.style.pointerEvents = 'auto'; // 恢复按钮交互
+
+            // 移除“再来一次”按钮
+            hint.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 1, 1), opacity 0.5s';
+            hint.style.transform = 'translateY(150px) translateX(-50%)'; // 保持水平居中，仅垂直向下移动
+            hint.style.opacity = '0';
+            await wait(500); // 等待动画完成
+            hint.remove();
+
+            // 恢复初始状态
+            allCards.forEach(card => {
+              card.style.pointerEvents = 'none'; // 禁用卡片点击
+              card.style.opacity = '0'; // 重置透明度
+              card.style.transform = 'translateY(100px)'; // 重置位置
+              card.style.transition = 'none'; // 清除过渡效果
+              card.offsetHeight; // 强制重绘
+              card.style.transition = 'opacity 1s, transform 1s cubic-bezier(0.25, 0.1, 0.25, 1.5)';
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(0)';
+            });
+
+            // 确保卡片的合并动画可以被重新触发
+            cardsToRemove.forEach(card => {
+              card.classList.remove('move-to-diamond'); // 移除合并动画类
+              card.offsetHeight; // 强制重绘
+            });
+          });
+        }, 0);
+      });
+    });
+
+    function adjustScale() {
+      const scaleX = window.innerWidth / baseWidth;
+      const scaleY = window.innerHeight / baseHeight;
+      const scale = Math.min(scaleX, scaleY); // 选择较小的缩放比例
+
+      document.body.style.transform = `scale(${scale})`;
+      document.body.style.transformOrigin = 'top left';
+      document.body.style.width = `${baseWidth}px`;
+      document.body.style.height = `${baseHeight}px`;
+    }
+
+    window.addEventListener('resize', adjustScale);
+    adjustScale(); // 初始化调用
+  </script>
+</body>
+</html>
