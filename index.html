@@ -363,8 +363,8 @@
             console.error('Names array is empty or not loaded.');
             return;
           }
-          //过滤掉结尾有空格的名字
-          const validNames = names.filter(name => !name.endsWith('.'));
+          //过滤条件
+          const validNames = names.filter(name => !name.endsWith('晔'));
           if (validNames.length === 0) {
             console.error('No valid names available for random selection.');
             return;
